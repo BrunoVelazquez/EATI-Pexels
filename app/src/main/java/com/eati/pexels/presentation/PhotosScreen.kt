@@ -72,36 +72,42 @@ fun PhotographerThing(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        Button(onClick = {
-            isSelected.value = !isSelected.value
-        },
-            shape = RoundedCornerShape(100.dp),
-            modifier = Modifier
-                .size(100.dp)
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(50.dp)
-                )
-                Text(
-                    text = photographerName,
-                    style = MaterialTheme.typography.h2,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 8.sp,
-                    color = Color.White
-                )
+        Row() {
+            Button(
+                onClick = {
+                    isSelected.value = !isSelected.value
+                },
+                shape = RoundedCornerShape(100.dp),
+                modifier = Modifier
+                    .size(100.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(50.dp)
+                    )
+                    Text(
+                        text = photographerName,
+                        style = MaterialTheme.typography.h2,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 8.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
-        var name: UniquePhotographer? = null
-        list.forEach{
-            if(it.photographerName.equals(photographerName))
-                name = it
-        }
-        if(isSelected.value) {
-            showPhotos(name)
+        Row() {
+            var name: UniquePhotographer? = null
+            list.forEach {
+                if (it.photographerName.equals(photographerName))
+                    name = it
+            }
+
+            if (isSelected.value) {
+                showPhotos(name)
+            }
         }
     }
 }
@@ -120,7 +126,6 @@ fun PhotographersRow(
             PhotographerThing(
                 photographerName = item.photographerName,
                 list,
-
             )
         }
     }
@@ -134,14 +139,15 @@ fun showPhotos(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .fillMaxHeight()
-            .horizontalScroll(rememberScrollState())
+            .padding(32.dp)
+
     ) {
         val listPhotos = photographer?.photos
         listPhotos!!.forEach{
             AsyncImage(
                 model = it,
-                contentDescription = null
+                contentDescription = null,
+
             )
         }
     }
