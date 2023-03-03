@@ -98,18 +98,17 @@ fun PhotographerThing(
                 }
             }
         }
-        Row() {
-            var name: UniquePhotographer? = null
-            list.forEach {
-                if (it.photographerName.equals(photographerName))
-                    name = it
-            }
+        var name: UniquePhotographer? = null
+        list.forEach {
+            if (it.photographerName.equals(photographerName))
+                name = it
+        }
 
-            if (isSelected.value) {
-                showPhotos(name)
-            }
+        if (isSelected.value) {
+            showPhotos(name)
         }
     }
+
 }
 
 @Composable
@@ -135,20 +134,21 @@ fun PhotographersRow(
 fun showPhotos(
     photographer: UniquePhotographer?
 ) {
-    Row(
+    LazyRow(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .padding(32.dp)
+            .size(500.dp)
 
     ) {
         val listPhotos = photographer?.photos
-        listPhotos!!.forEach{
-            AsyncImage(
-                model = it,
-                contentDescription = null,
-
-            )
+        if (listPhotos != null) {
+            items(listPhotos.size) {
+                AsyncImage(
+                    model = listPhotos[it],
+                    contentDescription = null,
+                )
+            }
         }
     }
 }
