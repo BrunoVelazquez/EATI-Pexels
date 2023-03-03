@@ -18,6 +18,7 @@ class PhotosRepository {
             avgColor = it.avgColor,
             liked = it.liked,
             alt = it.alt,
+            photoUrl = it.scr.large,
         )
     }
 }
