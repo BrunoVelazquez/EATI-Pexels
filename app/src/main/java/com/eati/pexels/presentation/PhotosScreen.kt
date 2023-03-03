@@ -4,9 +4,11 @@ import android.provider.Contacts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -27,14 +29,14 @@ import com.eati.pexels.domain.Photo
 fun PhotosScreen(viewModel: PhotosViewModel) {
     val result by viewModel.photosFlow.collectAsState()
 
-    Box(modifier = Modifier.background(color = Color.White)) {
+    Column {
         SearchBar(updateResults = viewModel::updateResults)
         val mapPhotographerPhoto: MutableMap<String, MutableList<String>> =
             getMapPhotographerPhotos(result)
 
         val listUniquePhotographers : MutableList<UniquePhotographer> = mutableListOf()
         mapPhotographerPhoto.keys.forEach {
-            listUniquePhotographers.add(UniquePhotographer(it, mapPhotographerPhoto.get(it)))
+            listUniquePhotographers.add(UniquePhotographer(it, mapPhotographerPhoto[it]))
         }
         PhotographersRow(list = listUniquePhotographers)
     }
@@ -52,6 +54,7 @@ fun SearchBar (
         modifier = Modifier.fillMaxWidth()
     ) {
         TextField(
+            placeholder = { Text("Search input") },
             value = input,
             onValueChange = { input = it },
             colors = TextFieldDefaults.textFieldColors(
@@ -60,10 +63,12 @@ fun SearchBar (
             leadingIcon = { Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
-                modifier = Modifier.clickable(onClick = {updateResults(input)})
+                modifier = Modifier
+                    .clickable(onClick = {updateResults(input)})
             )},
             modifier = Modifier
                 .heightIn(min = 56.dp)
+                .fillMaxWidth()
         )
     }
 }
@@ -110,7 +115,7 @@ fun PhotographerThing(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        Row() {
+        Row {
             Button(
                 onClick = {
                     isSelected.value = !isSelected.value
@@ -172,12 +177,9 @@ fun PhotographersRow(
 fun showPhotos(
     photographer: UniquePhotographer?
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
+    LazyColumn(
         modifier = Modifier
-            .size(500.dp)
-
+            .fillMaxWidth()
     ) {
         val listPhotos = photographer?.photos
         if (listPhotos != null) {
