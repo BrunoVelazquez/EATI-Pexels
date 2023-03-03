@@ -1,10 +1,8 @@
 package com.eati.pexels.presentation
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -17,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.eati.pexels.domain.Photo
 
 @Composable
@@ -63,17 +60,15 @@ data class UniquePhotographer(val photographerName: String, val photos: MutableL
 fun PhotographerThing(
     photographerName: String,
     list: List<UniquePhotographer>,
+    showPhotos:(List<UniquePhotographer>) -> Unit,
     modifier: Modifier = Modifier
 ){
-    val isSelected = remember {
-        mutableStateOf(false)
-    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
         Button(onClick = {
-            isSelected.value = !isSelected.value
+            showPhotos()
         },
             shape = RoundedCornerShape(100.dp),
             modifier = Modifier
@@ -95,14 +90,6 @@ fun PhotographerThing(
                 )
             }
         }
-        var name: UniquePhotographer? = null
-        list.forEach{
-            if(it.photographerName.equals(photographerName))
-                name = it
-        }
-        if(isSelected.value) {
-            showPhotos(name)
-        }
     }
 }
 
@@ -119,8 +106,7 @@ fun PhotographersRow(
         items(list) { item ->
             PhotographerThing(
                 photographerName = item.photographerName,
-                list,
-
+                list
             )
         }
     }
@@ -128,21 +114,14 @@ fun PhotographersRow(
 
 @Composable
 fun showPhotos(
-    photographer: UniquePhotographer?
+    photographer: UniquePhotographer
 ) {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxHeight()
-            .horizontalScroll(rememberScrollState())
+    LazyRow(
+        modifier = Modifier.fillMaxHeight(),
+        horizontalArrangement = Arrangement.Center
     ) {
-        val listPhotos = photographer?.photos
-        listPhotos!!.forEach{
-            AsyncImage(
-                model = it,
-                contentDescription = null
-            )
+        items(photographer.photos) {item ->
+
         }
     }
 }
