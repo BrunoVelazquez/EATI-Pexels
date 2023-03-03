@@ -11,5 +11,4 @@ data class Photo(
     val avgColor: String,
     val liked: Boolean,
     val alt: String,
-    val photoUrl: String,
 )
