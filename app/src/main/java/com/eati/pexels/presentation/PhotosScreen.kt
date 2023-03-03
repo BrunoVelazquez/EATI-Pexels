@@ -1,19 +1,22 @@
 package com.eati.pexels.presentation
 
-import androidx.compose.foundation.horizontalScroll
+import android.provider.Contacts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,20 +27,64 @@ import com.eati.pexels.domain.Photo
 fun PhotosScreen(viewModel: PhotosViewModel) {
     val result by viewModel.photosFlow.collectAsState()
 
-    Photos(result, viewModel::updateResults)
+    Box(modifier = Modifier.background(color = Color.White)) {
+        SearchBar(updateResults = viewModel::updateResults)
+        val mapPhotographerPhoto: MutableMap<String, MutableList<String>> =
+            getMapPhotographerPhotos(result)
+
+        val listUniquePhotographers : MutableList<UniquePhotographer> = mutableListOf()
+        mapPhotographerPhoto.keys.forEach {
+            listUniquePhotographers.add(UniquePhotographer(it, mapPhotographerPhoto.get(it)))
+        }
+        PhotographersRow(list = listUniquePhotographers)
+    }
+
+}
+
+@Composable
+fun SearchBar (
+    updateResults: (String) -> Unit
+) {
+    var input by remember {
+        mutableStateOf("")
+    }
+    Row (
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = input,
+            onValueChange = { input = it },
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = MaterialTheme.colors.surface
+            ),
+            leadingIcon = { Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                modifier = Modifier.clickable(onClick = {updateResults(input)})
+            )},
+            modifier = Modifier
+                .heightIn(min = 56.dp)
+        )
+    }
 }
 
 @Composable
 fun Photos(results: List<Photo>, updateResults: (String) -> Unit) {
-    LaunchedEffect(Unit) {
-        updateResults("architecture")
-    }
+
+
+
+
+
+}
+
+@Composable
+private fun getMapPhotographerPhotos(results: List<Photo>): MutableMap<String, MutableList<String>> {
     var listLastIndex = results.size - 1
-    val mapPhotographerPhoto : MutableMap<String, MutableList<String>> = mutableMapOf()
-    for(i in 0..listLastIndex) {
+    val mapPhotographerPhoto: MutableMap<String, MutableList<String>> = mutableMapOf()
+    for (i in 0..listLastIndex) {
         var photographer: String = results[i].photographer
         var listPhotos: MutableList<String>? = mapPhotographerPhoto.get(photographer)
-        if(listPhotos == null) {
+        if (listPhotos == null) {
             var newList: MutableList<String> = mutableListOf(results[i].photoUrl)
             mapPhotographerPhoto.put(photographer, newList)
         } else {
@@ -45,16 +92,7 @@ fun Photos(results: List<Photo>, updateResults: (String) -> Unit) {
             mapPhotographerPhoto[photographer] = listPhotos
         }
     }
-
-    val listUniquePhotographers : MutableList<UniquePhotographer> = mutableListOf()
-    mapPhotographerPhoto.keys.forEach {
-        listUniquePhotographers.add(UniquePhotographer(it, mapPhotographerPhoto.get(it)))
-    }
-
-    Column(modifier = Modifier.padding(8.dp)) {
-        PhotographersRow(list = listUniquePhotographers)
-    }
-
+    return mapPhotographerPhoto
 }
 
 data class UniquePhotographer(val photographerName: String, val photos: MutableList<String>?)
