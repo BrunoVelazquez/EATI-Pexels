@@ -1,18 +1,37 @@
 package com.eati.pexels.presentation
 
+import android.widget.Toast
+import android.content.Context
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.HoverInteraction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.eati.pexels.domain.Photo
@@ -27,28 +46,19 @@ fun PhotosScreen(viewModel: PhotosViewModel) {
     ) {
         SearchBar(updateResults = viewModel::updateResults)
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+            columns = GridCells.Adaptive(150.dp),
             contentPadding = PaddingValues(vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.height(800.dp)
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(result.size) {
-                showPhoto(photo = result[it])
+                ShowPhoto(photo = result[it])
             }
         }
-        //val mapPhotographerPhoto: MutableMap<String, MutableList<String>> =
-        //    getMapPhotographerPhotos(result)
-
-        //val listUniquePhotographers : MutableList<UniquePhotographer> = mutableListOf()
-        //mapPhotographerPhoto.keys.forEach {
-        //    listUniquePhotographers.add(UniquePhotographer(it, mapPhotographerPhoto[it]))
-        //}
-        //PhotographersRow(list = listUniquePhotographers)
     }
-
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchBar (
     updateResults: (String) -> Unit
@@ -56,16 +66,19 @@ fun SearchBar (
     var input by remember {
         mutableStateOf("")
     }
+    val keyboardController = LocalSoftwareKeyboardController.current
     Row (
         modifier = Modifier.fillMaxWidth()
     ) {
-        TextField(
-            placeholder = { Text("Search input") },
+        OutlinedTextField(
             value = input,
             onValueChange = { input = it },
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = MaterialTheme.colors.surface
             ),
+            label = { Text("Search") },
+            maxLines = 1,
+            singleLine = true,
             leadingIcon = { Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
@@ -73,126 +86,53 @@ fun SearchBar (
                     .clickable(onClick = {updateResults(input)})
             )},
             modifier = Modifier
+                .padding(20.dp)
                 .heightIn(min = 56.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide()
+                    updateResults(input)
+                }),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
         )
     }
 }
 
-/*@Composable
-fun Photos(results: List<Photo>, updateResults: (String) -> Unit) {
-
-
-
-
-
-}
-
 @Composable
-private fun getMapPhotographerPhotos(results: List<Photo>): MutableMap<String, MutableList<String>> {
-    var listLastIndex = results.size - 1
-    val mapPhotographerPhoto: MutableMap<String, MutableList<String>> = mutableMapOf()
-    for (i in 0..listLastIndex) {
-        var photographer: String = results[i].photographer
-        var listPhotos: MutableList<String>? = mapPhotographerPhoto.get(photographer)
-        if (listPhotos == null) {
-            var newList: MutableList<String> = mutableListOf(results[i].photoUrl)
-            mapPhotographerPhoto.put(photographer, newList)
-        } else {
-            listPhotos.add(results[i].photoUrl)
-            mapPhotographerPhoto[photographer] = listPhotos
-        }
-    }
-    return mapPhotographerPhoto
-}
-
-data class UniquePhotographer(val photographerName: String, val photos: MutableList<String>?)
-
-@Composable
-fun PhotographerThing(
-    photographerName: String,
-    list: List<UniquePhotographer>,
-    modifier: Modifier = Modifier
-){
-    val isSelected = remember {
-        mutableStateOf(false)
-    }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
-        Row {
-            Button(
-                onClick = {
-                    isSelected.value = !isSelected.value
-                },
-                shape = RoundedCornerShape(100.dp),
-                modifier = Modifier
-                    .size(100.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(50.dp)
-                    )
-                    Text(
-                        text = photographerName,
-                        style = MaterialTheme.typography.h2,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 8.sp,
-                        color = Color.White
-                    )
-                }
-            }
-        }
-        var name: UniquePhotographer? = null
-        list.forEach {
-            if (it.photographerName.equals(photographerName))
-                name = it
-        }
-
-        if (isSelected.value) {
-            showPhotos(name)
-        }
-    }
-
-}
-
-@Composable
-fun PhotographersRow(
-    list: List<UniquePhotographer>,
-    modifier: Modifier = Modifier
-) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        modifier = modifier
-    ) {
-        items(list) { item ->
-            PhotographerThing(
-                photographerName = item.photographerName,
-                list,
-            )
-        }
-    }
-} */
-
-@Composable
-fun showPhoto(
+fun ShowPhoto(
     photo: Photo
 ) {
-    Column() {
+    var liked by remember {
+        mutableStateOf(photo.liked)
+    }
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+
+    Box(
+        contentAlignment = Alignment.BottomEnd
+    ) {
         AsyncImage(
             model = photo.photoUrl,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .clip(CircleShape)
-                .size(128.dp)
-                //.clickable { showBigger() }
+                .size(250.dp)
+                .clickable(onClick = {
+                    expanded = !expanded
+                })
         )
+        IconButton(onClick = {
+            liked = !liked
+        }) {
+            Icon(
+                imageVector = if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(10.dp),
+                tint = if (liked) Color.Red else Color.White
+            )
+        }
     }
-
 }
