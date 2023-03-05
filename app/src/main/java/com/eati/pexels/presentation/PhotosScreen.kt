@@ -48,7 +48,7 @@ import com.eati.pexels.domain.Photo
 @Composable
 fun PhotosScreen(viewModel: PhotosViewModel) {
     val result by viewModel.photosFlow.collectAsState()
-    
+
     Column(
     ) {
         SearchBar(updateResults = viewModel::updateResults)
